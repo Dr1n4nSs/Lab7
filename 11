@@ -1,0 +1,145 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Xml.Serialization;
+
+namespace UnifiedProject
+{
+    // Структура для задачи 5
+    public struct Toy
+    {
+        private string _name;
+        private double _price;
+        private int _minAge;
+        private int _maxAge;
+
+        public string Name { get { return _name; } set { _name = value; } }
+        public double Price { get { return _price; } set { _price = value; } }
+        public int MinAge { get { return _minAge; } set { _minAge = value; } }
+        public int MaxAge { get { return _maxAge; } set { _maxAge = value; } }
+    }
+
+    public static class TaskProcessor
+    {
+        // --- ЗАДАЧА 4: Символы нечетных слов (БИНАРНЫЙ ФАЙЛ) ---
+        public static void CreateBinaryTextFile(string filePath, string text)
+        {
+            using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create)))
+            {
+                writer.Write(text); // Записываем строку в бинарном формате
+            }
+            Console.WriteLine("Бинарный файл с текстом создан: {0}", filePath);
+        }
+
+        public static void ProcessOddWordsBinary(string filePath)
+        {
+            if (!File.Exists(filePath)) return;
+
+            string text;
+            using (BinaryReader reader = new BinaryReader(File.Open(filePath, FileMode.Open)))
+            {
+                text = reader.ReadString(); // Читаем строку из бинарного файла
+            }
+
+            char[] separators = { ' ', '\r', '\n', '\t', ',', '.', '!', '?', '-' };
+            string[] words = text.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+            HashSet<char> uniqueChars = new HashSet<char>();
+
+            for (int i = 0; i < words.Length; i++)
+            {
+                if ((i + 1) % 2 != 0)
+                {
+                    foreach (char c in words[i].ToLower())
+                    {
+                        if (char.IsLetter(c)) uniqueChars.Add(c);
+                    }
+                }
+            }
+
+            List<char> sortedChars = new List<char>(uniqueChars);
+            sortedChars.Sort();
+
+            Console.Write("Буквы нечетных слов (из бинарного файла): ");
+            foreach (char c in sortedChars) Console.Write(c + " ");
+            Console.WriteLine();
+        }
+
+        // --- ЗАДАЧА 5: Игрушки (XML Сериализация в бинарный поток) ---
+        public static void CreateInitialToyFile(string filePath)
+        {
+            Toy[] toys = new Toy[3];
+            toys[0] = new Toy { Name = "Машинка", Price = 1500, MinAge = 3, MaxAge = 7 };
+            toys[1] = new Toy { Name = "Кубики", Price = 450, MinAge = 1, MaxAge = 4 };
+            toys[2] = new Toy { Name = "Пазл", Price = 800, MinAge = 5, MaxAge = 10 };
+
+            XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
+            using (FileStream fs = new FileStream(filePath, FileMode.Create))
+            {
+                serializer.Serialize(fs, toys);
+            }
+            Console.WriteLine("Файл игрушек создан (XML-сериализация).");
+        }
+
+        // Вывод содержимого файла для сравнения
+        public static void PrintToyFileContents(string filePath)
+        {
+            if (!File.Exists(filePath)) return;
+
+            XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
+            Toy[] toys;
+            using (FileStream fs = new FileStream(filePath, FileMode.Open))
+            {
+                toys = (Toy[])serializer.Deserialize(fs);
+            }
+
+            Console.WriteLine("\n--- Содержимое бинарного файла (Toy) ---");
+            foreach (var toy in toys)
+            {
+                Console.WriteLine("Игрушка: {0}, Цена: {1} руб, Возраст: {2}-{3}", 
+                    toy.Name, toy.Price, toy.MinAge, toy.MaxAge);
+            }
+        }
+
+        public static string GetCheapestToy(string filePath)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
+            Toy[] toys;
+            using (FileStream fs = new FileStream(filePath, FileMode.Open))
+            {
+                toys = (Toy[])serializer.Deserialize(fs);
+            }
+
+            double min = double.MaxValue;
+            string name = "";
+            foreach (var t in toys)
+            {
+                if (t.Price < min) { min = t.Price; name = t.Name; }
+            }
+            return name;
+        }
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            // Тест Задача 4
+            string binTextFile = "poem.dat";
+            string poem = "Мороз и солнце; день чудесный!\r\nЕще ты дремлешь, друг прелестный";
+            TaskProcessor.CreateBinaryTextFile(binTextFile, poem);
+            TaskProcessor.ProcessOddWordsBinary(binTextFile);
+
+            // Тест Задача 5
+            string toyFile = "toys.bin";
+            TaskProcessor.CreateInitialToyFile(toyFile);
+            
+            // Вывод данных для контроля
+            TaskProcessor.PrintToyFileContents(toyFile);
+            
+            string cheapest = TaskProcessor.GetCheapestToy(toyFile);
+            Console.WriteLine("\nСамая дешевая игрушка: " + cheapest);
+
+            Console.ReadKey();
+        }
+    }
+}
