@@ -1,10 +1,10 @@
-﻿namespace ConsoleApp2;
+namespace ConsoleApp7;
 
 using System;
 using System.Xml.Serialization;
 public static class FileTasks
 {
-    public static double CalculateMaxMinDiffSquare(string filePath)
+    public static double DiffSquare(string filePath)
     {
         ValidateFile(filePath);
         string[] lines = File.ReadAllLines(filePath);
@@ -79,24 +79,53 @@ public static class FileTasks
         File.WriteAllLines(outputP, results);
     }
     
-    public static int CountDoubleOdds(string filePath)
-    {
-        ValidateFile(filePath);
-        string[] lines = File.ReadAllLines(filePath);
-        int count = 0;
-
-        foreach (string line in lines)
+    public static void CreateBinaryNumbersFile(string filePath)
         {
-            if (int.TryParse(line, out int num))
+            int[] numbers = { 6, 10, 8, 7, 14, 20, 22 };
+            using (BinaryWriter writer = new BinaryWriter
+                       (File.Open(filePath, FileMode.Create)))
             {
-                if (num % 2 == 0 && (num / 2) % 2 != 0)
+                foreach (int num in numbers)
                 {
-                    count++;
+                    writer.Write(num);
                 }
             }
         }
-        return count;
-    }
+    
+        public static void PrintBinaryNumbers(string filePath)
+        {
+            ValidateFile(filePath);
+            Console.Write("Содержимое файла: ");
+            using (BinaryReader reader = new BinaryReader
+                       (File.Open(filePath, FileMode.Open)))
+            {
+                while (reader.BaseStream.Position < reader.BaseStream.Length)
+                {
+                    int num = reader.ReadInt32();
+                    Console.Write(num + " ");
+                }
+            }
+            Console.WriteLine();
+        }
+        
+        public static int CountDoubleOddsBinary(string filePath)
+        {
+            ValidateFile(filePath);
+            int count = 0;
+            using (BinaryReader reader = new BinaryReader
+                       (File.Open(filePath, FileMode.Open)))
+            {
+                while (reader.BaseStream.Position < reader.BaseStream.Length)
+                {
+                    int num = reader.ReadInt32();
+                    if (num % 2 == 0 && (num / 2) % 2 != 0)
+                    {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        }
     
     public struct Toy
     {
@@ -107,90 +136,105 @@ public static class FileTasks
         
         public string Name
         {
-            get { return _name; }
-            set { _name = value; }
+            get
+            {
+                return _name;
+            }
+            set
+            {
+                _name = value;
+            }
         }
 
         public double Price
         {
-            get { return _price; }
-            set { _price = value; }
+            get
+            {
+                return _price;
+            }
+            set
+            {
+                _price = value;
+            }
         }
 
         public int MinAge
         {
-            get { return _minAge; }
-            set { _minAge = value; }
+            get
+            {
+                return _minAge;
+            }
+            set
+            {
+                _minAge = value;
+            }
         }
 
         public int MaxAge
         {
-            get { return _maxAge; }
-            set { _maxAge = value; }
+            get
+            {
+                return _maxAge;
+            }
+            set
+            {
+                _maxAge = value;
+            }
         }
     }
 
-    public static void CreateInitialFile(string filePath)
+    public static void CreateInitialToyFile(string filePath)
+    {
+        Toy[] toys = new Toy[3];
+        toys[0] = new Toy { Name = "Машинка", Price = 1500, MinAge = 3, MaxAge = 7 };
+        toys[1] = new Toy { Name = "Кубики", Price = 450, MinAge = 1, MaxAge = 4 };
+        toys[2] = new Toy { Name = "Пазл", Price = 800, MinAge = 5, MaxAge = 10 };
+
+        XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
+        using (FileStream fs = new FileStream(filePath, FileMode.Create))
         {
-            Toy[] toys = new Toy[3];
-
-            toys[0].Name = "Конструктор";
-            toys[0].Price = 2500.0;
-            toys[0].MinAge = 5;
-            toys[0].MaxAge = 12;
-
-            toys[1].Name = "Мыльные пузыри";
-            toys[1].Price = 50.0;
-            toys[1].MinAge = 2;
-            toys[1].MaxAge = 5;
-
-            toys[2].Name = "Кукла";
-            toys[2].Price = 1200.0;
-            toys[2].MinAge = 3;
-            toys[2].MaxAge = 10;
-            
-            XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
-            
-            using (FileStream fs = new FileStream(filePath, FileMode.Create))
-            {
-                serializer.Serialize(fs, toys);
-            }
+            serializer.Serialize(fs, toys);
         }
+    }
     
-        public static string GetCheapestToyName(string filePath)
+    public static void PrintToyFileContents(string filePath)
+    {
+        ValidateFile(filePath);
+        XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
+        Toy[] toys;
+        using (FileStream fs = new FileStream(filePath, FileMode.Open))
         {
-            if (!File.Exists(filePath))
-            {
-                return "Файл не найден";
-            }
-
-            XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
-            Toy[] toys;
-
-            using (FileStream fs = new FileStream(filePath, FileMode.Open))
-            {
-                toys = (Toy[])serializer.Deserialize(fs);
-            }
-
-            if (toys == null || toys.Length == 0)
-            {
-                return "Список пуст";
-            }
-            
-            double minPrice = double.MaxValue;
-            string cheapestName = "";
-
-            for (int i = 0; i < toys.Length; i++)
-            {
-                if (toys[i].Price < minPrice)
-                {
-                    minPrice = toys[i].Price;
-                    cheapestName = toys[i].Name;
-                }
-            }
-
-            return cheapestName;
+            toys = (Toy[])serializer.Deserialize(fs);
         }
+
+        Console.WriteLine("\nСодержимое бинарного файла");
+        foreach (var toy in toys)
+        {
+            Console.WriteLine("Игрушка: {0}, Цена: {1} руб, Возраст: {2}-{3}", 
+                toy.Name, toy.Price, toy.MinAge, toy.MaxAge);
+        }
+    }
+
+    public static string GetCheapestToy(string filePath)
+    {
+        XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
+        Toy[] toys;
+        using (FileStream fs = new FileStream(filePath, FileMode.Open))
+        {
+            toys = (Toy[])serializer.Deserialize(fs);
+        }
+
+        double min = double.MaxValue;
+        string name = "";
+        foreach (var t in toys)
+        {
+            if (t.Price < min)
+            {
+                min = t.Price; name = t.Name;
+            }
+        }
+        return name;
+    }
 
     private static void ValidateFile(string path)
     {
