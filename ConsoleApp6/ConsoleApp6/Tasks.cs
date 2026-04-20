@@ -41,11 +41,11 @@ public static class Tasks
         
         public static void Electives(string[] allE, List<string[]> choices)
         {
-            if (allE == null || choices == null || choices.Count == 0) return;
-
+            if (allE == null || choices == null || choices.Count == 0)
+            {
+                return;
+            }
             HashSet<string> allSet = new HashSet<string>(allE);
-
-
             HashSet<string> attendAll = new HashSet<string>(choices[0]);
             for (int i = 1; i < choices.Count; i++)
             {
