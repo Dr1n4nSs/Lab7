@@ -1,121 +1,67 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Xml.Serialization;
 
 namespace UnifiedProject
 {
-    // Структура для задачи 5
-    public struct Toy
+    public static class BinaryMathTasks
     {
-        private string _name;
-        private double _price;
-        private int _minAge;
-        private int _maxAge;
-
-        public string Name { get { return _name; } set { _name = value; } }
-        public double Price { get { return _price; } set { _price = value; } }
-        public int MinAge { get { return _minAge; } set { _minAge = value; } }
-        public int MaxAge { get { return _maxAge; } set { _maxAge = value; } }
-    }
-
-    public static class TaskProcessor
-    {
-        // --- ЗАДАЧА 4: Символы нечетных слов (БИНАРНЫЙ ФАЙЛ) ---
-        public static void CreateBinaryTextFile(string filePath, string text)
+        // Метод для создания бинарного файла с числами
+        public static void CreateBinaryNumbersFile(string filePath)
         {
+            // Набор тестовых данных:
+            // 6 (удв. нечет), 10 (удв. нечет), 8 (четное, не подходит), 7 (нечет), 14 (удв. нечет)
+            int[] numbers = { 6, 10, 8, 7, 14, 20, 22 };
+
             using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create)))
             {
-                writer.Write(text); // Записываем строку в бинарном формате
+                foreach (int num in numbers)
+                {
+                    writer.Write(num);
+                }
             }
-            Console.WriteLine("Бинарный файл с текстом создан: {0}", filePath);
+            Console.WriteLine("Бинарный файл чисел создан: {0}", filePath);
         }
 
-        public static void ProcessOddWordsBinary(string filePath)
+        // Метод для вывода содержимого бинарного файла (для сравнения)
+        public static void PrintBinaryNumbers(string filePath)
         {
             if (!File.Exists(filePath)) return;
 
-            string text;
+            Console.Write("Содержимое файла: ");
             using (BinaryReader reader = new BinaryReader(File.Open(filePath, FileMode.Open)))
             {
-                text = reader.ReadString(); // Читаем строку из бинарного файла
-            }
-
-            char[] separators = { ' ', '\r', '\n', '\t', ',', '.', '!', '?', '-' };
-            string[] words = text.Split(separators, StringSplitOptions.RemoveEmptyEntries);
-            HashSet<char> uniqueChars = new HashSet<char>();
-
-            for (int i = 0; i < words.Length; i++)
-            {
-                if ((i + 1) % 2 != 0)
+                // Читаем, пока не достигнем конца потока
+                while (reader.BaseStream.Position < reader.BaseStream.Length)
                 {
-                    foreach (char c in words[i].ToLower())
-                    {
-                        if (char.IsLetter(c)) uniqueChars.Add(c);
-                    }
+                    int num = reader.ReadInt32();
+                    Console.Write(num + " ");
                 }
             }
-
-            List<char> sortedChars = new List<char>(uniqueChars);
-            sortedChars.Sort();
-
-            Console.Write("Буквы нечетных слов (из бинарного файла): ");
-            foreach (char c in sortedChars) Console.Write(c + " ");
             Console.WriteLine();
         }
 
-        // --- ЗАДАЧА 5: Игрушки (XML Сериализация в бинарный поток) ---
-        public static void CreateInitialToyFile(string filePath)
+        // Метод для поиска количества удвоенных нечетных чисел
+        public static int CountDoubleOddsBinary(string filePath)
         {
-            Toy[] toys = new Toy[3];
-            toys[0] = new Toy { Name = "Машинка", Price = 1500, MinAge = 3, MaxAge = 7 };
-            toys[1] = new Toy { Name = "Кубики", Price = 450, MinAge = 1, MaxAge = 4 };
-            toys[2] = new Toy { Name = "Пазл", Price = 800, MinAge = 5, MaxAge = 10 };
+            if (!File.Exists(filePath)) return 0;
 
-            XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
-            using (FileStream fs = new FileStream(filePath, FileMode.Create))
+            int count = 0;
+            using (BinaryReader reader = new BinaryReader(File.Open(filePath, FileMode.Open)))
             {
-                serializer.Serialize(fs, toys);
-            }
-            Console.WriteLine("Файл игрушек создан (XML-сериализация).");
-        }
+                while (reader.BaseStream.Position < reader.BaseStream.Length)
+                {
+                    int num = reader.ReadInt32();
 
-        // Вывод содержимого файла для сравнения
-        public static void PrintToyFileContents(string filePath)
-        {
-            if (!File.Exists(filePath)) return;
-
-            XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
-            Toy[] toys;
-            using (FileStream fs = new FileStream(filePath, FileMode.Open))
-            {
-                toys = (Toy[])serializer.Deserialize(fs);
+                    // Проверка условия: 
+                    // 1. Число четное (num % 2 == 0)
+                    // 2. Результат деления на 2 - нечетный ((num / 2) % 2 != 0)
+                    if (num % 2 == 0 && (num / 2) % 2 != 0)
+                    {
+                        count++;
+                    }
+                }
             }
-
-            Console.WriteLine("\n--- Содержимое бинарного файла (Toy) ---");
-            foreach (var toy in toys)
-            {
-                Console.WriteLine("Игрушка: {0}, Цена: {1} руб, Возраст: {2}-{3}", 
-                    toy.Name, toy.Price, toy.MinAge, toy.MaxAge);
-            }
-        }
-
-        public static string GetCheapestToy(string filePath)
-        {
-            XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
-            Toy[] toys;
-            using (FileStream fs = new FileStream(filePath, FileMode.Open))
-            {
-                toys = (Toy[])serializer.Deserialize(fs);
-            }
-
-            double min = double.MaxValue;
-            string name = "";
-            foreach (var t in toys)
-            {
-                if (t.Price < min) { min = t.Price; name = t.Name; }
-            }
-            return name;
+            return count;
         }
     }
 
@@ -123,22 +69,21 @@ namespace UnifiedProject
     {
         static void Main()
         {
-            // Тест Задача 4
-            string binTextFile = "poem.dat";
-            string poem = "Мороз и солнце; день чудесный!\r\nЕще ты дремлешь, друг прелестный";
-            TaskProcessor.CreateBinaryTextFile(binTextFile, poem);
-            TaskProcessor.ProcessOddWordsBinary(binTextFile);
+            string fileName = "numbers.dat";
 
-            // Тест Задача 5
-            string toyFile = "toys.bin";
-            TaskProcessor.CreateInitialToyFile(toyFile);
-            
-            // Вывод данных для контроля
-            TaskProcessor.PrintToyFileContents(toyFile);
-            
-            string cheapest = TaskProcessor.GetCheapestToy(toyFile);
-            Console.WriteLine("\nСамая дешевая игрушка: " + cheapest);
+            // 1. Создаем файл
+            BinaryMathTasks.CreateBinaryNumbersFile(fileName);
 
+            // 2. Выводим числа для проверки глазами
+            BinaryMathTasks.PrintBinaryNumbers(fileName);
+
+            // 3. Считаем результат
+            int result = BinaryMathTasks.CountDoubleOddsBinary(fileName);
+
+            Console.WriteLine("\nКоличество удвоенных нечетных чисел: {0}", result);
+            
+            // В нашем примере это: 6, 10, 14, 22. Итого: 4.
+            
             Console.ReadKey();
         }
     }
