@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -8,7 +8,6 @@ namespace UnifiedProject
     {
         static void Main()
         {
-            // Тест Задача 1 и 2
             List<int> list1 = new List<int> { 1, 1, 2, 2, 2, 3, 4, 4 };
             Console.WriteLine("Задача 1: ");
             Tasks.RemoveDuplicates(list1);
