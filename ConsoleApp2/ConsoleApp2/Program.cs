@@ -1,41 +1,44 @@
-﻿using System;
+using System;
 
-namespace ConsoleApp2
+namespace ConsoleApp7
 {
     class Program
     {
         static void Main(string[] args)
         {
+            FileTasks.ExtractLastCharacters("text.txt", "tebe2/zaetylaby/potomychtonetproverki");
             try
             {
-                
-                Console.WriteLine("--- Задача 1: Квадрат разности max и min ---");
-                double task1Result = FileTasks.CalculateMaxMinDiffSquare("numbers.txt");
+                Console.WriteLine("Задача 1:");
+                double task1Result = FileTasks.DiffSquare("numbers.txt");
                 Console.WriteLine("Результат: {0}", task1Result);
 
-                Console.WriteLine("\n--- Задача 2: Сумма нечетных элементов ---");
+                Console.WriteLine("\nЗадача 2:");
                 int task2Result = FileTasks.SumOddElements("numbers.txt");
                 Console.WriteLine("Сумма: {0}", task2Result);
 
-                Console.WriteLine("\n--- Задача 3: Последние символы строк ---");
+                Console.WriteLine("\nЗадача 3:");
                 FileTasks.ExtractLastCharacters("text.txt", "output.txt");
                 Console.WriteLine("Файл 'output.txt' сформирован.");
 
-                Console.WriteLine("\n--- Задача 4: Количество удвоенных нечетных чисел ---");
-                int task4Result = FileTasks.CountDoubleOdds("numbers.txt");
-                Console.WriteLine("Количество: {0}", task4Result);
+                Console.WriteLine("\nЗадача 4:");
+                string fileName = "numbers.bin";
+                FileTasks.CreateBinaryNumbersFile(fileName);
+                FileTasks.PrintBinaryNumbers(fileName);
+                int result = FileTasks.CountDoubleOddsBinary(fileName);
+                Console.WriteLine("\nКоличество удвоенных нечетных чисел: {0}", result);
 
-                Console.WriteLine("\n--- Задача 5: Самая дешёвая игрушка ---");
-                string toyFile = "toys_data.xml";
-                FileTasks.CreateInitialFile(toyFile);
-                string result = FileTasks.GetCheapestToyName(toyFile);
-    
-                Console.WriteLine("Результат: " + result);
+                Console.WriteLine("\nЗадача 5:");
+                string toyFile = "toys.bin";
+                FileTasks.CreateInitialToyFile(toyFile);
+                FileTasks.PrintToyFileContents(toyFile);
+                string cheapest = FileTasks.GetCheapestToy(toyFile);
+                Console.WriteLine("\nСамая дешевая игрушка: " + cheapest);
 
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Произошла ошибка при тестировании: " + ex.Message);
+                Console.WriteLine("Произошла ошибка: " + ex.Message);
             }
         }
     }
