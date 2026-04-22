@@ -1,6 +1,6 @@
-﻿using System;
-
-namespace ConsoleApp7
+using System;
+using System.Collections.Generic;
+namespace ConsoleApp20
 {
     class Program
     {
@@ -32,22 +32,26 @@ namespace ConsoleApp7
 
             Console.WriteLine("\nЗадача 5:");
             string toyFile = "toys.bin";
-            Toy.CreateInitialToyFile(toyFile);
-            Toy.PrintToyFileContents(toyFile);
-            string cheapest = Toy.GetCheapestToy(toyFile);
+            FileTasks.CreateToyFile(toyFile);
+            FileTasks.PrintToyFile(toyFile);
+            string cheapest = FileTasks.GetCheapestToy(toyFile);
             Console.WriteLine("\nСамая дешевая игрушка: " + cheapest);
             
             List<double> list1 = new List<double> { 1, 1, 1, 1, 2, 3, 2, 3, 5, 5, 5, 1, 1, 4};
+            List<string> list2 = new List<string> { "asd", "asd", "asd", "a", "a", "ddd"};
             Console.WriteLine("\nЗадача 6: ");
             OtherTasks.RemoveDuplicates(list1);
+            OtherTasks.RemoveDuplicates(list2);
             
             Console.WriteLine("\nЗадача 7: ");
-            LinkedList<double> linked = OtherTasks.BuildDouble(list1);
-            OtherTasks.PrintLinkedList(linked);
+            LinkedList<double> linked1 = OtherTasks.BuildDouble(list1);
+            LinkedList<string> linked2 = OtherTasks.BuildDouble(list2);
+            OtherTasks.PrintLinkedList(linked1);
+            OtherTasks.PrintLinkedList(linked2);
             
             Console.WriteLine("\nЗадача 8:");
-            string[] allE = [];
-            List<string[]> choices = [];
+            string[] allE;
+            List<string[]> choices;
             OtherTasks.GenerateElectivesData(out allE, out choices);
             Console.WriteLine("Факультативы");
             Console.WriteLine(string.Join(", ", allE));
