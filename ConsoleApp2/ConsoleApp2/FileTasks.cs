@@ -1,250 +1,268 @@
-using System;
 using System.IO;
-using System.Xml.Serialization;
-public static class FileTasks
+using System;
+using System.Collections.Generic;
+
+public class OtherTasks
 {
-    private static  Random _random;
-    
-    static FileTasks()
+    private static  Random rnd;
+    static OtherTasks()
     {
-        _random = new Random();
+        rnd = new Random();
+    }
+    public static void RemoveDuplicates<T>(List<T> list)
+    {
+        if (list == null)
+        {
+            Console.Write("Список пуст");
+            return;
+        }
+            
+        Console.Write("Список до: ");
+        PrintList(list);
+            
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            if (list[i].Equals(list[i - 1]))
+            {
+                list.RemoveAt(i);
+            }
+        }
+        Console.Write("Список после: ");
+        PrintList(list);
     }
     
-    public static void GenerateTask1File(string filePath, int count)
+    public static LinkedList<T> BuildDouble<T>(List<T> singleList)
     {
-        if (ValidateFile(filePath))
+        LinkedList<T> doubleList = new LinkedList<T>();
+        if (singleList == null)
         {
-            using (StreamWriter writer = new StreamWriter(filePath, false))
+            Console.Write("Список пуст");
+            return doubleList;
+        }
+
+        foreach (T item in singleList)
+        {
+            doubleList.AddLast(item);
+        }
+        return doubleList;
+    }
+    
+    public static void Electives(string[] allE, List<string[]> choices)
+    {
+        if (allE == null || choices == null || choices.Count == 0)
+        {
+            return;
+        }
+        HashSet<string> allSet = new HashSet<string>(allE);
+        HashSet<string> attendAll = new HashSet<string>(choices[0]);
+        for (int i = 1; i < choices.Count; i++)
+        {
+            attendAll.IntersectWith(new HashSet<string>(choices[i]));
+        }
+            
+        HashSet<string> attendAtLeastOne = new HashSet<string>();
+        foreach (string[] choice in choices)
+        {
+            attendAtLeastOne.UnionWith(new HashSet<string>(choice));
+        }
+            
+        HashSet<string> attendNone = new HashSet<string>(allSet);
+        attendNone.ExceptWith(attendAtLeastOne);
+
+        PrintSet("Ходят все студенты: ", attendAll);
+        PrintSet("Ходит хотя бы один: ", attendAtLeastOne);
+        PrintSet("Не ходит никто: ", attendNone);
+    }
+    
+    public static void GenerateElectivesData
+        (out string[] allElectives, out List<string[]> studentChoices)
+    {
+        allElectives = new string[] 
+        { 
+            "Высшая математика", "Физика", "Программирование C#", 
+            "Базы данных", "История", "Психология", "Философия" 
+        };
+
+        studentChoices = new List<string[]>();
+        
+        int studentsCount = rnd.Next(3, 6);
+
+        for (int i = 0; i < studentsCount; i++)
+        {
+            int electivesCount = rnd.Next(1, 5);
+            HashSet<string> choice = new HashSet<string>();
+
+            while (choice.Count < electivesCount)
             {
-                for (int i = 0; i < count; i++)
-                {
-                    writer.WriteLine(_random.Next(-100, 101));
-                }
+                string randomSubject = allElectives
+                    [rnd.Next(allElectives.Length)];
+                choice.Add(randomSubject);
             }
+            string[] choiceArray = new string[choice.Count];
+            choice.CopyTo(choiceArray);
+            studentChoices.Add(choiceArray);
         }
     }
     
-    public static void GenerateTask2File(string filePath, int rows, int cols)
+    public static void ProcessOddWordsChars(string filePath)
     {
         if (ValidateFile(filePath))
         {
-            using (StreamWriter writer = new StreamWriter(filePath, false))
+            string text = File.ReadAllText(filePath);
+            char[] separators = { ' ', '\r', '\n', '\t' };
+            string[] words = text.Split
+                (separators, StringSplitOptions.RemoveEmptyEntries);
+            HashSet<char> uniqueChars = new HashSet<char>();
+
+            for (int i = 0; i < words.Length; i++)
             {
-                for (int i = 0; i < rows; i++)
+                if ((i + 1) % 2 != 0)
                 {
-                    string line = "";
-                    for (int j = 0; j < cols; j++)
+                    foreach (char c in words[i].ToLower())
                     {
-                        line += _random.Next(1, 101) + " ";
-                    }
-
-                    writer.WriteLine(line.Trim());
-                }
-            }
-        }
-    }
-    
-    public static void GenerateBinaryRandomFile(string filePath, int count)
-    {
-        if (ValidateFile(filePath))
-        {
-            using (BinaryWriter writer = new BinaryWriter
-                       (File.Open(filePath, FileMode.Create)))
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    writer.Write(_random.Next(1, 51));
-                }
-            }
-        }
-    }
-    public static double DiffSquare(string filePath)
-    {
-        if (ValidateFile(filePath))
-        {
-            string[] lines = File.ReadAllLines(filePath);
-            if (lines.Length == 0)
-            {
-                return 0;
-            }
-
-            double max = double.MinValue;
-            double min = double.MaxValue;
-            bool found = false;
-
-            foreach (string line in lines)
-            {
-                if (double.TryParse(line, out double num))
-                {
-                    if (num > max)
-                    {
-                        max = num;
-                    }
-
-                    if (num < min)
-                    {
-                        min = num;
-                    }
-                    found = true;
-                }
-            }
-            return found ? (max - min) * (max - min) : 0;
-        }
-        return 0;
-    }
-
-    public static int SumOddElements(string filePath)
-    {
-        if (ValidateFile(filePath))
-        {
-            string[] lines = File.ReadAllLines(filePath);
-            int sum = 0;
-
-            foreach (string line in lines)
-            {
-                string[] parts = line.Split
-                    (new char[] { ' ' },StringSplitOptions.RemoveEmptyEntries);
-                foreach (string part in parts)
-                {
-                    if (int.TryParse(part, out int num))
-                    {
-                        if (num % 2 != 0)
+                        if (char.IsLetter(c))
                         {
-                            sum += num;
+                            uniqueChars.Add(c);
                         }
                     }
                 }
             }
-            return sum;
-        }
-        return 0;
-    }
 
-    public static void ExtractLastCharacters(string inputP, string outputP)
+            List<char> sortedChars = new List<char>(uniqueChars);
+            sortedChars.Sort();
+
+            Console.Write("Символы из нечетных слов: ");
+            foreach (char c in sortedChars) Console.Write(c + " ");
+            Console.WriteLine();
+        }
+        return;
+    }
+    public static void GenerateGasDataFile(string filePath)
     {
-        if (ValidateFile(inputP))
+        if (ValidateFile(filePath))
         {
-            if (ValidateFile(outputP))
+            string[] companies = { "Синойл", "Газпром", "Лукойл", "Роснефть" };
+            string[] streets = { "Цветочная", "Ленина", "Мира", "Новая" };
+            int[] brands = { 92, 95, 98 };
+            int n = 10; 
+            using (StreamWriter sw = new StreamWriter(filePath))
             {
-                string[] lines = File.ReadAllLines(inputP);
-                string[] results = new string[lines.Length];
-                string currentLine;
-                for (int i = 0; i < lines.Length; i++)
+                sw.WriteLine(n); 
+                for (int i = 0; i < n; i++)
                 {
-                    currentLine = lines[i];
-                    results[i] = currentLine.Length > 0 ? 
-                        currentLine[currentLine.Length - 1].ToString() : "";
+                    string comp = companies[rnd.Next(companies.Length)];
+                    string street = streets[rnd.Next(streets.Length)];
+                    int brand = brands[rnd.Next(brands.Length)];
+                    int price = rnd.Next(1000, 3001);
+            
+                    sw.WriteLine
+                        ("{0} {1} {2} {3}", comp, street, brand, price);
                 }
-                File.WriteAllLines(outputP, results);
             }
+            Console.WriteLine("Файл АЗС {0} сгенерирован.", filePath);
         }
     }
     
-    public static void PrintBinaryNumbers(string filePath)
+    public static void SolveGasTask(string filePath)
     {
         if (ValidateFile(filePath))
         {
-            Console.Write("Содержимое файла: ");
-            using (BinaryReader reader = new BinaryReader
-                       (File.Open(filePath, FileMode.Open)))
+            string[] allLines = File.ReadAllLines(filePath);
+            if (allLines.Length == 0)
             {
-                while (reader.BaseStream.Position < reader.BaseStream.Length)
-                {
-                    int num = reader.ReadInt32();
-                    Console.Write(num + " ");
-                }
+                return;
             }
-            Console.WriteLine();
-        }
-    }
-        
-    public static int CountDoubleOddsBinary(string filePath)
-    {
-        if (ValidateFile(filePath))
-        {
-            int count = 0;
-            int num = 0;
-            using (BinaryReader reader = new BinaryReader
-                       (File.Open(filePath, FileMode.Open)))
+
+            if (!int.TryParse(allLines[0], out int n))
             {
-                while (reader.BaseStream.Position < reader.BaseStream.Length)
+                return;
+            }
+
+            Dictionary<int, List<int>> gasD = new Dictionary<int, List<int>>();
+            gasD.Add(92, new List<int>());
+            gasD.Add(95, new List<int>());
+            gasD.Add(98, new List<int>());
+
+            for (int i = 1; i <= n && i < allLines.Length; i++)
+            {
+                string line = allLines[i];
+                if (string.IsNullOrWhiteSpace(line))
                 {
-                    num = reader.ReadInt32();
-                    if (num % 2 == 0 && (num / 2) % 2 != 0)
+                    continue;
+                }
+
+                string[] parts = line.Split
+                    (new char[]{ ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                if (parts.Length == 4)
+                {
+                    if (int.TryParse(parts[2], out int brand) && 
+                        int.TryParse(parts[3], out int price))
                     {
-                        count++;
+                        if (gasD.ContainsKey(brand))
+                        {
+                            gasD[brand].Add(price);
+                        }
                     }
                 }
             }
-            return count;
+
+            int[] brands = { 92, 95, 98 };
+            int[] c = new int[3];
+
+            for (int i = 0; i < brands.Length; i++)
+            {
+                List<int> prices = gasD[brands[i]];
+                if (prices.Count == 0)
+                {
+                    c[i] = 0;
+                    continue;
+                }
+
+                int minPrice = int.MaxValue;
+                foreach (int p in prices)
+                    if (p < minPrice)
+                        minPrice = p;
+
+                int minCount = 0;
+                foreach (int p in prices)
+                    if (p == minPrice)
+                    {
+                        minCount++;
+                    }
+                c[i] = minCount;
+            }
+
+            Console.WriteLine
+                ("Результат (92 95 98): {0} {1} {2}", c[0], c[1], c[2]);
         }
-        return 0;
     }
     
-    public static void PrintTaskFile(string filePath)
+    public static void PrintList<T>(List<T> list)
+    {
+        foreach (T item in list) Console.Write(item + " ");
+        Console.WriteLine();
+    }
+    public static void PrintLinkedList<T>(LinkedList<T> list)
+    {
+        foreach (T item in list) Console.Write(item + " ");
+        Console.WriteLine();
+    }
+    
+    public static void PrintSet(string msg, HashSet<string> set)
+    {
+        Console.Write(msg);
+        foreach (string s in set) Console.Write(s + " ");
+        Console.WriteLine();
+    }
+    
+    public static void PrintGasFile(string filePath)
     {
         if (ValidateFile(filePath))
         {
-            string[] lines = File.ReadAllLines(filePath);
-            foreach (string line in lines)
-            {
-                Console.WriteLine(line);
-            }
+            Console.WriteLine("Содержимое файла");
+            Console.WriteLine(File.ReadAllText(filePath));
         }
-        
-    }
-    
-    public static void CreateToyFile(string filePath)
-    {
-        Toy[] toys = new Toy[3];
-        toys[0] = new Toy ("Машинка", 1500, 3, 7 );
-        toys[1] = new Toy ( "Кубики", 450, 1, 4 );
-        toys[2] = new Toy ( "Пазл", 800, 5, 10 );
-
-        XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
-        using (FileStream fs = new FileStream(filePath, FileMode.Create))
-        {
-            serializer.Serialize(fs, toys);
-        }
-    }
-    
-    public static void PrintToyFile(string filePath)
-    {
-        FileTasks.ValidateFile(filePath);
-        XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
-        Toy[] toys;
-        using (FileStream fs = new FileStream(filePath, FileMode.Open))
-        {
-            toys = (Toy[])serializer.Deserialize(fs);
-        }
-
-        Console.WriteLine("\nСодержимое бинарного файла");
-        foreach (var toy in toys)
-        {
-            Console.WriteLine("Игрушка: {0}, Цена: {1} руб, Возраст: {2}-{3}", 
-                toy.Name, toy.Price, toy.MinAge, toy.MaxAge);
-        }
-    }
-
-    public static string GetCheapestToy(string filePath)
-    {
-        XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
-        Toy[] toys;
-        using (FileStream fs = new FileStream(filePath, FileMode.Open))
-        {
-            toys = (Toy[])serializer.Deserialize(fs);
-        }
-
-        double min = double.MaxValue;
-        string name = "";
-        foreach (var t in toys)
-        {
-            if (t.Price < min)
-            {
-                min = t.Price; name = t.Name;
-            }
-        }
-        return name;
     }
     
     public static bool ValidateFile(string path)
