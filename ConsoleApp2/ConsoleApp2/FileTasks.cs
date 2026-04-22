@@ -1,9 +1,14 @@
-﻿namespace ConsoleApp7;
-
 using System;
+using System.IO;
+using System.Xml.Serialization;
 public static class FileTasks
 {
-    private static Random _random = new Random();
+    private static  Random _random;
+    
+    static FileTasks()
+    {
+        _random = new Random();
+    }
     
     public static void GenerateTask1File(string filePath, int count)
     {
@@ -58,7 +63,10 @@ public static class FileTasks
         if (ValidateFile(filePath))
         {
             string[] lines = File.ReadAllLines(filePath);
-            if (lines.Length == 0) return 0;
+            if (lines.Length == 0)
+            {
+                return 0;
+            }
 
             double max = double.MinValue;
             double min = double.MaxValue;
@@ -68,8 +76,15 @@ public static class FileTasks
             {
                 if (double.TryParse(line, out double num))
                 {
-                    if (num > max) max = num;
-                    if (num < min) min = num;
+                    if (num > max)
+                    {
+                        max = num;
+                    }
+
+                    if (num < min)
+                    {
+                        min = num;
+                    }
                     found = true;
                 }
             }
@@ -87,12 +102,16 @@ public static class FileTasks
 
             foreach (string line in lines)
             {
-                string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] parts = line.Split
+                    (new char[] { ' ' },StringSplitOptions.RemoveEmptyEntries);
                 foreach (string part in parts)
                 {
                     if (int.TryParse(part, out int num))
                     {
-                        if (num % 2 != 0) sum += num;
+                        if (num % 2 != 0)
+                        {
+                            sum += num;
+                        }
                     }
                 }
             }
@@ -109,13 +128,13 @@ public static class FileTasks
             {
                 string[] lines = File.ReadAllLines(inputP);
                 string[] results = new string[lines.Length];
-
+                string currentLine;
                 for (int i = 0; i < lines.Length; i++)
                 {
-                    string currentLine = lines[i];
-                    results[i] = currentLine.Length > 0 ? currentLine[currentLine.Length - 1].ToString() : "";
+                    currentLine = lines[i];
+                    results[i] = currentLine.Length > 0 ? 
+                        currentLine[currentLine.Length - 1].ToString() : "";
                 }
-
                 File.WriteAllLines(outputP, results);
             }
         }
@@ -144,12 +163,13 @@ public static class FileTasks
         if (ValidateFile(filePath))
         {
             int count = 0;
+            int num = 0;
             using (BinaryReader reader = new BinaryReader
                        (File.Open(filePath, FileMode.Open)))
             {
                 while (reader.BaseStream.Position < reader.BaseStream.Length)
                 {
-                    int num = reader.ReadInt32();
+                    num = reader.ReadInt32();
                     if (num % 2 == 0 && (num / 2) % 2 != 0)
                     {
                         count++;
@@ -171,6 +191,60 @@ public static class FileTasks
                 Console.WriteLine(line);
             }
         }
+        
+    }
+    
+    public static void CreateToyFile(string filePath)
+    {
+        Toy[] toys = new Toy[3];
+        toys[0] = new Toy ("Машинка", 1500, 3, 7 );
+        toys[1] = new Toy ( "Кубики", 450, 1, 4 );
+        toys[2] = new Toy ( "Пазл", 800, 5, 10 );
+
+        XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
+        using (FileStream fs = new FileStream(filePath, FileMode.Create))
+        {
+            serializer.Serialize(fs, toys);
+        }
+    }
+    
+    public static void PrintToyFile(string filePath)
+    {
+        FileTasks.ValidateFile(filePath);
+        XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
+        Toy[] toys;
+        using (FileStream fs = new FileStream(filePath, FileMode.Open))
+        {
+            toys = (Toy[])serializer.Deserialize(fs);
+        }
+
+        Console.WriteLine("\nСодержимое бинарного файла");
+        foreach (var toy in toys)
+        {
+            Console.WriteLine("Игрушка: {0}, Цена: {1} руб, Возраст: {2}-{3}", 
+                toy.Name, toy.Price, toy.MinAge, toy.MaxAge);
+        }
+    }
+
+    public static string GetCheapestToy(string filePath)
+    {
+        XmlSerializer serializer = new XmlSerializer(typeof(Toy[]));
+        Toy[] toys;
+        using (FileStream fs = new FileStream(filePath, FileMode.Open))
+        {
+            toys = (Toy[])serializer.Deserialize(fs);
+        }
+
+        double min = double.MaxValue;
+        string name = "";
+        foreach (var t in toys)
+        {
+            if (t.Price < min)
+            {
+                min = t.Price; name = t.Name;
+            }
+        }
+        return name;
     }
     
     public static bool ValidateFile(string path)
